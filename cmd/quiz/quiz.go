@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 
 	quizpb "github.com/wada1355/quiz_grpc/pkg/grpc"
@@ -24,20 +23,18 @@ func NewQuizService(client quizpb.QuizServiceClient, scanner *bufio.Scanner) *Qu
 	}
 }
 
-func (s *QuizService) Quiz() error {
-	scanner := bufio.NewScanner(os.Stdin)
-
+func (s *QuizService) PlayQuiz() error {
 	stream, err := s.client.PlayQuiz(context.Background())
 	if err != nil {
 		return err
 	}
-	questionNum, err := s.decideQuestionsNum(stream)
-	sendNum, err := strconv.Atoi(questionNum)
-	if err != nil {
-		return err
-	}
+	questionNum, err := s.decideQuestionNum(stream)
 	sendCount := 0
 	var sendEnd, recvEnd bool
+
+	if err := receivePrint(stream); err != nil {
+		return err
+	}
 
 	for !(sendEnd && recvEnd) {
 		if !recvEnd {
@@ -52,15 +49,15 @@ func (s *QuizService) Quiz() error {
 			}
 		}
 		if !sendEnd {
-			scanner.Scan()
-			myAnswer := scanner.Text()
+			s.scanner.Scan()
+			myAnswer := s.scanner.Text()
 			sendCount++
 			if err := stream.Send(&quizpb.QuizReq{
 				Answer: myAnswer,
 			}); err != nil {
 				return err
 			}
-			if sendCount == sendNum {
+			if sendCount == questionNum {
 				sendEnd = true
 				if err := stream.CloseSend(); err != nil {
 					return err
@@ -72,21 +69,22 @@ func (s *QuizService) Quiz() error {
 	return nil
 }
 
-func (s *QuizService) decideQuestionsNum(stream quizpb.QuizService_PlayQuizClient) (string, error) {
+func (s *QuizService) decideQuestionNum(stream quizpb.QuizService_PlayQuizClient) (int, error) {
 	if err := receivePrint(stream); err != nil {
-		return "", err
+		return 0, err
 	}
 
 	s.scanner.Scan()
-	questionNum := s.scanner.Text()
+	inputNum := s.scanner.Text()
 	if err := stream.Send(&quizpb.QuizReq{
-		Answer: questionNum,
+		Answer: inputNum,
 	}); err != nil {
-		return "", err
+		return 0, err
 	}
 
-	if err := receivePrint(stream); err != nil {
-		return "", err
+	questionNum, err := strconv.Atoi(inputNum)
+	if err != nil {
+		return 0, err
 	}
 
 	return questionNum, nil

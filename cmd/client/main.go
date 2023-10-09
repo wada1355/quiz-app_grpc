@@ -29,7 +29,7 @@ func main() {
 	client := quizpb.NewQuizServiceClient(conn)
 	scanner := bufio.NewScanner(os.Stdin)
 	q := quiz.NewQuizService(client, scanner)
-	if err := q.Quiz(); err != nil {
+	if err := q.PlayQuiz(); err != nil {
 		fmt.Print(err)
 	}
 }

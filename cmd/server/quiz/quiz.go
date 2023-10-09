@@ -31,6 +31,13 @@ func (s *QuizServer) PlayQuiz(stream quizpb.QuizService_PlayQuizServer) error {
 	if err != nil {
 		return err
 	}
+
+	if err := stream.Send(&quizpb.QuizRes{
+		Message: fmt.Sprintf("\n------%d問出題します-----\n", len(quizSet)),
+	}); err != nil {
+		return err
+	}
+
 	userAnswers := make([]string, 0)
 	for i, q := range quizSet {
 		if err := stream.Send(&quizpb.QuizRes{
@@ -44,11 +51,19 @@ func (s *QuizServer) PlayQuiz(stream quizpb.QuizService_PlayQuizServer) error {
 		}
 		userAnswers = append(userAnswers, req.GetAnswer())
 	}
+
+	if err := stream.Send(&quizpb.QuizRes{
+		Message: fmt.Sprint("\n------結果発表します-----\n"),
+	}); err != nil {
+		return err
+	}
+
 	session.quizSet = quizSet
 	session.userAnswers = userAnswers
 	if err := session.sendResult(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -58,29 +73,24 @@ func (s *QuizSession) prepareQuizSet() ([]quizset.QuizSet, error) {
 	}); err != nil {
 		return nil, err
 	}
+
 	req, err := s.stream.Recv()
 	if err != nil {
 		return nil, err
 	}
-	quizNumStr := req.GetAnswer()
-	quizNum, err := strconv.Atoi(quizNumStr)
+
+	userInput := req.GetAnswer()
+	quizNum, err := strconv.Atoi(userInput)
 	if err != nil {
 		return nil, err
 	}
-	if err := s.stream.Send(&quizpb.QuizRes{
-		Message: fmt.Sprintf("\n------%d問出題します-----\n", quizNum),
-	}); err != nil {
-		return nil, err
-	}
-	return quizset.GetRandomQuizSet(quizNum), nil
+
+	quizSet := quizset.GetRandomQuizSet(quizNum)
+
+	return quizSet, nil
 }
 
 func (s *QuizSession) sendResult() error {
-	if err := s.stream.Send(&quizpb.QuizRes{
-		Message: fmt.Sprint("\n------結果発表します-----\n"),
-	}); err != nil {
-		return err
-	}
 	correctNum := 0
 	for i, q := range s.quizSet {
 		userAnswer := s.userAnswers[i]

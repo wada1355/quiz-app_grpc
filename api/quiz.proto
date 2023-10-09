@@ -5,13 +5,13 @@ option go_package = "pkg/grpc";
 package quizapp;
 
 service QuizService {
-	rpc Quiz (stream QuizRequest) returns (stream QuizResponse);
+	rpc PlayQuiz (stream QuizReq) returns (stream QuizRes);
 }
 
-message QuizRequest {
+message QuizReq {
 	string answer = 1;
 }
 
-message QuizResponse {
+message QuizRes {
 	string message = 1;
 }

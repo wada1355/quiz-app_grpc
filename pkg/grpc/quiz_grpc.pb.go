@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	QuizService_Quiz_FullMethodName = "/quizapp.QuizService/Quiz"
+	QuizService_PlayQuiz_FullMethodName = "/quizapp.QuizService/PlayQuiz"
 )
 
 // QuizServiceClient is the client API for QuizService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QuizServiceClient interface {
-	Quiz(ctx context.Context, opts ...grpc.CallOption) (QuizService_QuizClient, error)
+	PlayQuiz(ctx context.Context, opts ...grpc.CallOption) (QuizService_PlayQuizClient, error)
 }
 
 type quizServiceClient struct {
@@ -37,31 +37,31 @@ func NewQuizServiceClient(cc grpc.ClientConnInterface) QuizServiceClient {
 	return &quizServiceClient{cc}
 }
 
-func (c *quizServiceClient) Quiz(ctx context.Context, opts ...grpc.CallOption) (QuizService_QuizClient, error) {
-	stream, err := c.cc.NewStream(ctx, &QuizService_ServiceDesc.Streams[0], QuizService_Quiz_FullMethodName, opts...)
+func (c *quizServiceClient) PlayQuiz(ctx context.Context, opts ...grpc.CallOption) (QuizService_PlayQuizClient, error) {
+	stream, err := c.cc.NewStream(ctx, &QuizService_ServiceDesc.Streams[0], QuizService_PlayQuiz_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &quizServiceQuizClient{stream}
+	x := &quizServicePlayQuizClient{stream}
 	return x, nil
 }
 
-type QuizService_QuizClient interface {
-	Send(*QuizRequest) error
-	Recv() (*QuizResponse, error)
+type QuizService_PlayQuizClient interface {
+	Send(*QuizReq) error
+	Recv() (*QuizRes, error)
 	grpc.ClientStream
 }
 
-type quizServiceQuizClient struct {
+type quizServicePlayQuizClient struct {
 	grpc.ClientStream
 }
 
-func (x *quizServiceQuizClient) Send(m *QuizRequest) error {
+func (x *quizServicePlayQuizClient) Send(m *QuizReq) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *quizServiceQuizClient) Recv() (*QuizResponse, error) {
-	m := new(QuizResponse)
+func (x *quizServicePlayQuizClient) Recv() (*QuizRes, error) {
+	m := new(QuizRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func (x *quizServiceQuizClient) Recv() (*QuizResponse, error) {
 // All implementations must embed UnimplementedQuizServiceServer
 // for forward compatibility
 type QuizServiceServer interface {
-	Quiz(QuizService_QuizServer) error
+	PlayQuiz(QuizService_PlayQuizServer) error
 	mustEmbedUnimplementedQuizServiceServer()
 }
 
@@ -80,8 +80,8 @@ type QuizServiceServer interface {
 type UnimplementedQuizServiceServer struct {
 }
 
-func (UnimplementedQuizServiceServer) Quiz(QuizService_QuizServer) error {
-	return status.Errorf(codes.Unimplemented, "method Quiz not implemented")
+func (UnimplementedQuizServiceServer) PlayQuiz(QuizService_PlayQuizServer) error {
+	return status.Errorf(codes.Unimplemented, "method PlayQuiz not implemented")
 }
 func (UnimplementedQuizServiceServer) mustEmbedUnimplementedQuizServiceServer() {}
 
@@ -96,26 +96,26 @@ func RegisterQuizServiceServer(s grpc.ServiceRegistrar, srv QuizServiceServer) {
 	s.RegisterService(&QuizService_ServiceDesc, srv)
 }
 
-func _QuizService_Quiz_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(QuizServiceServer).Quiz(&quizServiceQuizServer{stream})
+func _QuizService_PlayQuiz_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(QuizServiceServer).PlayQuiz(&quizServicePlayQuizServer{stream})
 }
 
-type QuizService_QuizServer interface {
-	Send(*QuizResponse) error
-	Recv() (*QuizRequest, error)
+type QuizService_PlayQuizServer interface {
+	Send(*QuizRes) error
+	Recv() (*QuizReq, error)
 	grpc.ServerStream
 }
 
-type quizServiceQuizServer struct {
+type quizServicePlayQuizServer struct {
 	grpc.ServerStream
 }
 
-func (x *quizServiceQuizServer) Send(m *QuizResponse) error {
+func (x *quizServicePlayQuizServer) Send(m *QuizRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *quizServiceQuizServer) Recv() (*QuizRequest, error) {
-	m := new(QuizRequest)
+func (x *quizServicePlayQuizServer) Recv() (*QuizReq, error) {
+	m := new(QuizReq)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -131,8 +131,8 @@ var QuizService_ServiceDesc = grpc.ServiceDesc{
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Quiz",
-			Handler:       _QuizService_Quiz_Handler,
+			StreamName:    "PlayQuiz",
+			Handler:       _QuizService_PlayQuiz_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

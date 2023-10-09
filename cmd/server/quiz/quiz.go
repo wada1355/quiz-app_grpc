@@ -15,14 +15,14 @@ type QuizServer struct {
 type QuizSession struct {
 	quizSet     []quizset.QuizSet
 	userAnswers []string
-	stream      quizpb.QuizService_QuizServer
+	stream      quizpb.QuizService_PlayQuizServer
 }
 
 func NewQuizServer() *QuizServer {
 	return &QuizServer{}
 }
 
-func (s *QuizServer) Quiz(stream quizpb.QuizService_QuizServer) error {
+func (s *QuizServer) PlayQuiz(stream quizpb.QuizService_PlayQuizServer) error {
 	session := &QuizSession{
 		stream: stream,
 	}
@@ -33,7 +33,7 @@ func (s *QuizServer) Quiz(stream quizpb.QuizService_QuizServer) error {
 	}
 	userAnswers := make([]string, 0)
 	for i, q := range quizSet {
-		if err := stream.Send(&quizpb.QuizResponse{
+		if err := stream.Send(&quizpb.QuizRes{
 			Message: fmt.Sprintf("問題%d: %s", i+1, q.Question),
 		}); err != nil {
 			return err
@@ -53,7 +53,7 @@ func (s *QuizServer) Quiz(stream quizpb.QuizService_QuizServer) error {
 }
 
 func (s *QuizSession) prepareQuizSet() ([]quizset.QuizSet, error) {
-	if err := s.stream.Send(&quizpb.QuizResponse{
+	if err := s.stream.Send(&quizpb.QuizRes{
 		Message: fmt.Sprintf("何問出題しますか？"),
 	}); err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func (s *QuizSession) prepareQuizSet() ([]quizset.QuizSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := s.stream.Send(&quizpb.QuizResponse{
+	if err := s.stream.Send(&quizpb.QuizRes{
 		Message: fmt.Sprintf("\n------%d問出題します-----\n", quizNum),
 	}); err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (s *QuizSession) prepareQuizSet() ([]quizset.QuizSet, error) {
 }
 
 func (s *QuizSession) sendResult() error {
-	if err := s.stream.Send(&quizpb.QuizResponse{
+	if err := s.stream.Send(&quizpb.QuizRes{
 		Message: fmt.Sprint("\n------結果発表します-----\n"),
 	}); err != nil {
 		return err
@@ -85,14 +85,14 @@ func (s *QuizSession) sendResult() error {
 	for i, q := range s.quizSet {
 		userAnswer := s.userAnswers[i]
 		if q.Answer == userAnswer {
-			if err := s.stream.Send(&quizpb.QuizResponse{
+			if err := s.stream.Send(&quizpb.QuizRes{
 				Message: fmt.Sprintf("問題%d: %s✅", i+1, userAnswer),
 			}); err != nil {
 				return err
 			}
 			correctNum++
 		} else {
-			if err := s.stream.Send(&quizpb.QuizResponse{
+			if err := s.stream.Send(&quizpb.QuizRes{
 				Message: fmt.Sprintf("問題%d: %s❌ → 正解は%s", i+1, userAnswer, q.Answer),
 			}); err != nil {
 				return err
@@ -100,7 +100,7 @@ func (s *QuizSession) sendResult() error {
 		}
 	}
 	accuracy := int(float64(correctNum) / float64(len(s.quizSet)) * 100.0)
-	if err := s.stream.Send(&quizpb.QuizResponse{
+	if err := s.stream.Send(&quizpb.QuizRes{
 		Message: fmt.Sprintf("問題数: %d, 正解数: %d, 正解数: %d％", len(s.quizSet), correctNum, accuracy),
 	}); err != nil {
 		return err

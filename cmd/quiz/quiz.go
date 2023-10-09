@@ -27,7 +27,7 @@ func NewQuizService(client quizpb.QuizServiceClient, scanner *bufio.Scanner) *Qu
 func (s *QuizService) Quiz() error {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	stream, err := s.client.Quiz(context.Background())
+	stream, err := s.client.PlayQuiz(context.Background())
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (s *QuizService) Quiz() error {
 			scanner.Scan()
 			myAnswer := scanner.Text()
 			sendCount++
-			if err := stream.Send(&quizpb.QuizRequest{
+			if err := stream.Send(&quizpb.QuizReq{
 				Answer: myAnswer,
 			}); err != nil {
 				return err
@@ -72,14 +72,14 @@ func (s *QuizService) Quiz() error {
 	return nil
 }
 
-func (s *QuizService) decideQuestionsNum(stream quizpb.QuizService_QuizClient) (string, error) {
+func (s *QuizService) decideQuestionsNum(stream quizpb.QuizService_PlayQuizClient) (string, error) {
 	if err := receivePrint(stream); err != nil {
 		return "", err
 	}
 
 	s.scanner.Scan()
 	questionNum := s.scanner.Text()
-	if err := stream.Send(&quizpb.QuizRequest{
+	if err := stream.Send(&quizpb.QuizReq{
 		Answer: questionNum,
 	}); err != nil {
 		return "", err
@@ -92,7 +92,7 @@ func (s *QuizService) decideQuestionsNum(stream quizpb.QuizService_QuizClient) (
 	return questionNum, nil
 }
 
-func receivePrint(stream quizpb.QuizService_QuizClient) error {
+func receivePrint(stream quizpb.QuizService_PlayQuizClient) error {
 	msg, err := stream.Recv()
 	if err != nil {
 		return err

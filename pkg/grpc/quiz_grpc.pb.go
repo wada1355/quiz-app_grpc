@@ -19,15 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	QuizService_Hello_FullMethodName = "/quizapp.QuizService/Hello"
-	QuizService_Quiz_FullMethodName  = "/quizapp.QuizService/Quiz"
+	QuizService_Quiz_FullMethodName = "/quizapp.QuizService/Quiz"
 )
 
 // QuizServiceClient is the client API for QuizService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QuizServiceClient interface {
-	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
 	Quiz(ctx context.Context, opts ...grpc.CallOption) (QuizService_QuizClient, error)
 }
 
@@ -37,15 +35,6 @@ type quizServiceClient struct {
 
 func NewQuizServiceClient(cc grpc.ClientConnInterface) QuizServiceClient {
 	return &quizServiceClient{cc}
-}
-
-func (c *quizServiceClient) Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
-	out := new(HelloResponse)
-	err := c.cc.Invoke(ctx, QuizService_Hello_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *quizServiceClient) Quiz(ctx context.Context, opts ...grpc.CallOption) (QuizService_QuizClient, error) {
@@ -83,7 +72,6 @@ func (x *quizServiceQuizClient) Recv() (*QuizResponse, error) {
 // All implementations must embed UnimplementedQuizServiceServer
 // for forward compatibility
 type QuizServiceServer interface {
-	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
 	Quiz(QuizService_QuizServer) error
 	mustEmbedUnimplementedQuizServiceServer()
 }
@@ -92,9 +80,6 @@ type QuizServiceServer interface {
 type UnimplementedQuizServiceServer struct {
 }
 
-func (UnimplementedQuizServiceServer) Hello(context.Context, *HelloRequest) (*HelloResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Hello not implemented")
-}
 func (UnimplementedQuizServiceServer) Quiz(QuizService_QuizServer) error {
 	return status.Errorf(codes.Unimplemented, "method Quiz not implemented")
 }
@@ -109,24 +94,6 @@ type UnsafeQuizServiceServer interface {
 
 func RegisterQuizServiceServer(s grpc.ServiceRegistrar, srv QuizServiceServer) {
 	s.RegisterService(&QuizService_ServiceDesc, srv)
-}
-
-func _QuizService_Hello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(HelloRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QuizServiceServer).Hello(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: QuizService_Hello_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QuizServiceServer).Hello(ctx, req.(*HelloRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _QuizService_Quiz_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -161,12 +128,7 @@ func (x *quizServiceQuizServer) Recv() (*QuizRequest, error) {
 var QuizService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "quizapp.QuizService",
 	HandlerType: (*QuizServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Hello",
-			Handler:    _QuizService_Hello_Handler,
-		},
-	},
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Quiz",

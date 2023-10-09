@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -27,12 +26,6 @@ type QuizSession struct {
 
 func NewQuizServer() *QuizServer {
 	return &QuizServer{}
-}
-
-func (s *QuizServer) Hello(ctx context.Context, req *quizpb.HelloRequest) (*quizpb.HelloResponse, error) {
-	return &quizpb.HelloResponse{
-		Message: fmt.Sprintf("Hello, %s!", req.GetName()),
-	}, nil
 }
 
 func (s *QuizServer) Quiz(stream quizpb.QuizService_QuizServer) error {

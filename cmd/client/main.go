@@ -32,7 +32,7 @@ func main() {
 		grpc.WithBlock(),
 	)
 	if err != nil {
-		log.Fatal("Connection failed.")
+		log.Fatal("Failed to connect gRPC")
 		return
 	}
 	defer conn.Close()
@@ -41,22 +41,6 @@ func main() {
 
 	if err := Quiz(); err != nil {
 		fmt.Print(err)
-	}
-}
-
-func Hello() {
-	fmt.Println("Please enter your name.")
-	scanner.Scan()
-	name := scanner.Text()
-
-	req := &quizpb.HelloRequest{
-		Name: name,
-	}
-	res, err := client.Hello(context.Background(), req)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(res.GetMessage())
 	}
 }
 
